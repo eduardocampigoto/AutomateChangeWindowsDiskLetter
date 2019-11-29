@@ -1,65 +1,41 @@
-$disks = Get-Disk
 <# 
-In $diskUUIDs set the disk UUIDs that will be used, commonly is the same that appears in SerialNumber column from Get-Disk command output.
-e.g:
-$diskUUIDs=@("97024B4328294CG41")
-$diskUUIDs=@("97024B4328294CG41","97024B4328294CG42","97024B4328294CG43")
+Use The command below in a powershell to extract the information to fill the variable $diskUUIDs,
+and fill the new letter variables in the same order that the disks where you want to set them.
 
-#IF THIS DONT WORK, TRY TO USE THE COMMAND BELOW IN POWERSHELL COMMAND PROMPT TO GET THE RIGHT UUID
-$disks = Get-Disk; foreach( $disk in $disks) { $dsknm= $disk.FriendlyName; $dskmdl = $disk.Model; $dskuuid = $disk.UniqueId; $dsksz = $disk.Size;  Write-Output " NAME: $dsknm `n MODEL: $dskmdl `n UUID: $dskuuid `n SIZE: $dsksz `n `n"  }
+$parts = Get-Partition ; foreach( $part in $parts ){ $diskId = $part.DiskId; $letter = $part.DriveLetter; $diskNumber = $part.DiskNumber ;$number = $part.PartitionNumber; Write-Output " Drive Letter: = $letter `n Disk ID: $diskID `n Disk Number: $diskNumber `n Partition Number = $number `n`n "}
 #>
-$diskUUIDs=@("")
 
-<# 
-For $disknumber, set the disk numbers for that you want to change the letter.
-This information can be saw at first column of Get-Disk command output
- e.g:
- $diskNumbers=@("1")
- $diskNumbers=@("1","3")
- #>
-$diskNumbers=@("")
-
-<# 
-for $partitionNumbers, set the partition numbers for that you want to change the letter.
-This information can be saw at first column of Get-Partition command output
+<#
 e.g:
-$partitionNumbers=@("2")
-$partitionNumbers=@("2","4")
+$diskUUIDs=@(""{00000000-0000-0000-0000-110000001000}USBSTOR\DISK&VEN_KINGSTON&PROD_DATATRAVELER_2.0&REV_1.5\3556DDFSSASD1BC1A111134fFA&0:DESKTOP","{00000000-0000-0000-0000-100000001000}USBSTOR\DISK&VEN_KINGSTON&PROD_DATATRAVELER_2.0&REV_1.2\3556DDFSSASD1BC1A1DSSDFGF&0:DESKTOP")
+$diskUUIDs=@(""{00000000-0000-0000-0000-110000001000}USBSTOR\DISK&VEN_KINGSTON&PROD_DATATRAVELER_2.0&REV_1.5\3556DDFSSASD1BC1A111134fFA&0:DESKTOP")
 #>
-$partitionNumbers=@("")
+$diskUUIDs=@()
 
-<# in $letters set the letters that will be used by the partitions above 
+<# in $newLetters set the letters that will be used by the partitions above 
 e.g:
-$letters=@("G")
-$letters=@("G","F")
+$newLetters=@("G")
+$newLetters=@("G","F")
 #>
-$letters=@("")
+$newLetters=@()
 
 #DONT CHANGE NOTHING BELOW THIS LINE
 foreach($uuid in $diskUUIDs) {    
-$partitionN = $partitionNumbers[[array]::IndexOf($diskUUIDs,$uuid)]
-$letter = $letters[[array]::IndexOf($diskUUIDs,$uuid)]
-
-    foreach($disk in $disks){       
-        
-        if($disk.UniqueId.Equals($uuid)){
-                 $dNumber = $diskNumbers[[array]::IndexOf($diskUUIDs,$uuid)]
-                 $partitionN = $partitionNumbers[[array]::IndexOf($diskUUIDs,$uuid)]
-                 $letter = $letters[[array]::IndexOf($diskUUIDs,$uuid)]
-                 $dpartCommand = @" 
+$letter = $newLetters[[array]::IndexOf($diskUUIDs,$uuid)]
+$Partition = (Get-Partition | where UniqueId -eq $uuid)
+            
+        if($letter -ne $Partition.DriveLetter){
+            $dNumber = $Partition.DiskNumber
+            $partitionN = $Partition.PartitionNumber            
+            $dpartCommand = @" 
 SELECT DISK $dNumber
 SELECT PARTITION $partitionN
 ASSIGN LETTER $letter
 "@
-                              $dpartCommand | Diskpart | Out-Null
-
-            
+            $dpartCommand | Diskpart | Out-Null
 
             
         }
 
-    }
-}
-
-  
-  
+    
+} 

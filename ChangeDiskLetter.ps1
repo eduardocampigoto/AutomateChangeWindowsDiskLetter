@@ -10,32 +10,21 @@ e.g:
 $diskUUIDs=@(""{00000000-0000-0000-0000-110000001000}USBSTOR\DISK&VEN_KINGSTON&PROD_DATATRAVELER_2.0&REV_1.5\3556DDFSSASD1BC1A111134fFA&0:DESKTOP","{00000000-0000-0000-0000-100000001000}USBSTOR\DISK&VEN_KINGSTON&PROD_DATATRAVELER_2.0&REV_1.2\3556DDFSSASD1BC1A1DSSDFGF&0:DESKTOP")
 $diskUUIDs=@(""{00000000-0000-0000-0000-110000001000}USBSTOR\DISK&VEN_KINGSTON&PROD_DATATRAVELER_2.0&REV_1.5\3556DDFSSASD1BC1A111134fFA&0:DESKTOP")
 #>
-$diskUUIDs=@()
+$diskUUIDs=@("")
 
 <# in $newLetters set the letters that will be used by the partitions above 
 e.g:
-$newLetters=@("G")
-$newLetters=@("G","F")
+$newLetters=@('G')
+$newLetters=@('G','F')
 #>
-$newLetters=@()
+$newLetters=@('')
 
-#DONT CHANGE NOTHING BELOW THIS LINE
+#DONT CHANGE CODE BELOW THIS LINE
 foreach($uuid in $diskUUIDs) {    
 $letter = $newLetters[[array]::IndexOf($diskUUIDs,$uuid)]
-$Partition = (Get-Partition | where UniqueId -eq $uuid)
-            
-        if($letter -ne $Partition.DriveLetter){
-            $dNumber = $Partition.DiskNumber
-            $partitionN = $Partition.PartitionNumber            
-            $dpartCommand = @" 
-SELECT DISK $dNumber
-SELECT PARTITION $partitionN
-ASSIGN LETTER $letter
-"@
-            $dpartCommand | Diskpart | Out-Null
-
-            
-        }
-
-    
-} 
+$Partition = (Get-Partition | where DiskId -eq $uuid)
+           if($letter -ne $Partition.DriveLetter){
+                Set-Partition -DiskNumber $Partition.DiskNumber -PartitionNumber $Partition.PartitionNumber -NewDriveLetter $letter 
+            }
+   
+}
